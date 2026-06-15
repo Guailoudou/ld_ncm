@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -22,22 +22,28 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++11 openssl
 
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    login.cpp \
-    network.cpp
+    network.cpp \
+    httpclient.cpp \
+    ncm_login.cpp \
+    userdata.cpp \
+    common.cpp
 
 HEADERS += \
         mainwindow.h \
-    login.h \
-    network.h
+    network.h \
+    httpclient.h \
+    ncm_login.h \
+    userdata.h \
+    common.h
 
 FORMS += \
         mainwindow.ui \
-    login.ui
+    ncm_login.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

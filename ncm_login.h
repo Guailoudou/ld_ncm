@@ -1,22 +1,28 @@
-#ifndef LOGIN_H
-#define LOGIN_H
+#ifndef NCM_LOGIN_H
+#define NCM_LOGIN_H
 
 #include <QDialog>
-
-namespace Ui {
-class login;
+#include <QPixmap>
+#include <QTimer>
+#include "userData.h"
+namespace Ui
+{
+class ncm_login;
 }
-
-class login : public QDialog
+class network;
+extern userData* user_data;
+class ncm_login : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit login(QWidget *parent = nullptr);
-    ~login();
+    explicit ncm_login(QWidget* parent = nullptr);
+    ~ncm_login();
 
 private:
-    Ui::login *ui;
+    Ui::ncm_login* ui;
+    network* net;
+    QTimer timer;
 };
 
-#endif // LOGIN_H
+#endif // NCM_LOGIN_H
