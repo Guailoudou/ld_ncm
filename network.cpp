@@ -74,6 +74,45 @@ void network::login_check(std::function<void (const QJsonObject&)> callback)
                );
 }
 
+void network::geturl_Json(QString Url, std::function<void (const QJsonObject&)> callback)
+{
+    client.hget(Url,
+                [callback](const QByteArray & data)
+    {
+        qDebug() << "[GET Success]:" << data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+        QJsonObject jsonObj = jsonDoc.object();
+        if(callback)
+        {
+            callback(jsonObj);
+        }
+    },
+    [](const QString & err)
+    {
+        qDebug() << "[GET Error]:" << err;
+    }
+               );
+}
+
+void network::posturl_Json(QString Url, const QJsonObject& jsonData, std::function<void (const QJsonObject&)> callback)
+{
+    client.hpost(Url, jsonData,
+                 [callback](const QByteArray & data)
+    {
+        qDebug() << "[POST Success]:" << data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+        QJsonObject jsonObj = jsonDoc.object();
+        if(callback)
+        {
+            callback(jsonObj);
+        }
+    },
+    [](const QString & err)
+    {
+        qDebug() << "[POST Error]:" << err;
+    }
+                );
+}
 void network::geturl_data(QString Url, std::function<void (const QByteArray&)> callback)
 {
     client.hget(Url,

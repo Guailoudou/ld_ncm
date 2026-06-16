@@ -7,7 +7,7 @@ class common
 {
 public:
     common();
-    static qint64 get_time();
+    static QString get_time();
 
 };
 

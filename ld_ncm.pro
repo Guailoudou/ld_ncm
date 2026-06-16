@@ -31,7 +31,8 @@ SOURCES += \
     httpclient.cpp \
     ncm_login.cpp \
     userdata.cpp \
-    common.cpp
+    common.cpp \
+    music_list_item.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -39,11 +40,13 @@ HEADERS += \
     httpclient.h \
     ncm_login.h \
     userdata.h \
-    common.h
+    common.h \
+    music_list_item.h
 
 FORMS += \
         mainwindow.ui \
-    ncm_login.ui
+    ncm_login.ui \
+    music_list_item.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

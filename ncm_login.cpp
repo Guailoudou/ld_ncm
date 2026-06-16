@@ -28,7 +28,7 @@ ncm_login::ncm_login(QWidget* parent) :
         net->login_check([this](const QJsonObject & data)
         {
             int code = data.value("code").toInt();
-            qDebug() << "[锟斤拷录状态]:" << data.value("message").toString();
+            qDebug() << "[登录状态]:" << data.value("message").toString();
             ui->login_state->setText(data.value("message").toString());
             if(code == 802)
             {
@@ -44,12 +44,17 @@ ncm_login::ncm_login(QWidget* parent) :
             {
                 user_data->setCookie(data.value("cookie").toString());
                 this->timer.stop();
+                this->close();
             }
         });
     });
     timer.start(5000);
 }
-
+void ncm_login::closeEvent(QCloseEvent* event)
+{
+    emit windowClosed(); // 窗口关闭时发出信号
+    QWidget::closeEvent(event); // 调用基类的默认关闭行为
+}
 ncm_login::~ncm_login()
 {
     delete ui;

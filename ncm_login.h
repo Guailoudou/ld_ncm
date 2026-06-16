@@ -19,6 +19,10 @@ public:
     explicit ncm_login(QWidget* parent = nullptr);
     ~ncm_login();
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+signals:
+    void windowClosed();
 private:
     Ui::ncm_login* ui;
     network* net;

@@ -2,6 +2,8 @@
 #define NETWORK_H
 
 #include <QObject>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <string>
 #include "httpclient.h"
 #include "common.h"
@@ -14,6 +16,8 @@ public:
     void login_getQR(std::function<void(const QString& qrBase64)> callback);
     void login_check(std::function<void(const QJsonObject& data)> callback);
     void geturl_data(QString Url, std::function<void(const QByteArray& data)> callback);
+    void geturl_Json(QString Url, std::function<void (const QJsonObject&)> callback);
+    void posturl_Json(QString Url, const QJsonObject& jsonData, std::function<void (const QJsonObject&)> callback);
     QString getApi_url() const;
     void setApi_url(const QString& value);
 
