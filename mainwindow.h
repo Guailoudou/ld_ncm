@@ -40,7 +40,7 @@ private slots:
 private:
     Ui::MainWindow* ui;
     network* net;
-    QMediaPlayer* player;               //²¥·Å¶ÔÏó
+    QMediaPlayer* player;               //æ’­æ”¾å¯¹è±¡
     QMediaPlaylist* playerlist;
     QTimer timer;
 };

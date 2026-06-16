@@ -28,7 +28,7 @@ ncm_login::ncm_login(QWidget* parent) :
         net->login_check([this](const QJsonObject & data)
         {
             int code = data.value("code").toInt();
-            qDebug() << "[µÇÂ¼×´Ì¬]:" << data.value("message").toString();
+            qDebug() << "[ç™»å½•çŠ¶æ€]:" << data.value("message").toString();
             ui->login_state->setText(data.value("message").toString());
             if(code == 802)
             {
@@ -52,8 +52,8 @@ ncm_login::ncm_login(QWidget* parent) :
 }
 void ncm_login::closeEvent(QCloseEvent* event)
 {
-    emit windowClosed(); // ´°¿Ú¹Ø±ÕÊ±·¢³öĞÅºÅ
-    QWidget::closeEvent(event); // µ÷ÓÃ»ùÀàµÄÄ¬ÈÏ¹Ø±ÕĞĞÎª
+    emit windowClosed(); // çª—å£å…³é—­æ—¶å‘å‡ºä¿¡å·
+    QWidget::closeEvent(event); // è°ƒç”¨åŸºç±»çš„é»˜è®¤å…³é—­è¡Œä¸º
 }
 ncm_login::~ncm_login()
 {

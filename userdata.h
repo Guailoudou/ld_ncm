@@ -2,6 +2,11 @@
 #define USERDATA_H
 #include <QJsonObject>
 #include <QObject>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonParseError>
+#include <QDebug>
 class userData
 {
 public:
@@ -11,6 +16,9 @@ public:
 
     QJsonObject getData() const;
     void setData(const QJsonObject& value);
+
+    void getfile();
+    void savefile();
 
 private:
     QString cookie;

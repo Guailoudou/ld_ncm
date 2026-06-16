@@ -47,7 +47,9 @@ FORMS += \
         mainwindow.ui \
     ncm_login.ui \
     music_list_item.ui
-
+win32:msvc {
+    QMAKE_CXXFLAGS += /utf-8
+}
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
