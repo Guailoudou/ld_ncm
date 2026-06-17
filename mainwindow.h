@@ -31,6 +31,9 @@ public:
 
     QString getLyricAtMs(qint64 currentMs);
     void openplayer(const QString murl);
+    QString getNewmid() const;
+    void setNewmid(QString value);
+
 private slots:
     void on_searchButton_clicked();
 
@@ -51,6 +54,7 @@ private:
     QMediaPlayer* player;               //播放对象
     QMediaPlaylist* playerlist;
     QMap<qint64, QString> lrcMap;
+    QString newmid;
     QTimer timer;
 };
 

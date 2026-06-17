@@ -11,9 +11,29 @@ MainWindow::MainWindow(QWidget* parent) :
     ui->setupUi(this);
     connect(&timer, &QTimer::timeout, [this]
     {
+
+        if(player->duration() == 0)
+        {
+            timer.stop();
+            for(int i = 0; i < ui->listWidget->count(); ++i)
+            {
+                QListWidgetItem* item = ui->listWidget->item(i);
+                if(item)
+                {
+                    music_list_item* from = dynamic_cast<music_list_item*>(ui->listWidget->itemWidget(item));
+                    if(from->getMid() == getNewmid())
+                    {
+                        if(i < ui->listWidget->count() - 1)
+                        {
+                            on_listWidget_itemClicked(ui->listWidget->item(++i));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         ui->mpbar->setValue(player->position());
         ui->mpbar->setMaximum(player->duration());
-        if(player->duration() == 0)timer.stop();
         //qDebug() << "maxtime=" << player->duration() << "time= " << player->position();
         ui->lyric_label->setText(getLyricAtMs(player->position()));
         QString time_str = QDateTime::fromMSecsSinceEpoch(player->position(), Qt::UTC).toString("mm:ss");
@@ -66,6 +86,7 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
     {
         music_list_item* from = dynamic_cast<music_list_item*>(ui->listWidget->itemWidget(item));
         QString mid = from->getMid();
+        setNewmid(mid);
         QString url = net->getApi_url() + "/song/url/v1?id=" + mid + "&ua=pc&level=exhigh&timestamp=" + common::get_time();
         qDebug() << url;
         QJsonObject postDataObj;
@@ -101,6 +122,8 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
 
     }
 }
+
+
 void MainWindow::openplayer(const QString murl)
 {
     qDebug() << "[player]:url=" << murl;
@@ -110,7 +133,7 @@ void MainWindow::openplayer(const QString murl)
     player->setMedia(playerlist);                        //将列表设置到播放器中
     playerlist->setCurrentIndex(0);
     player->play();                                  //播放
-    timer.start(1000);
+    timer.start(500);
 }
 void MainWindow::getLyric(const QString mid)
 {
@@ -142,6 +165,10 @@ void MainWindow::getLyric(const QString mid)
 }
 QString MainWindow::getLyricAtMs(qint64 currentMs)
 {
+    if(lrcMap.isEmpty())
+    {
+        return QString("当前音乐无歌词，请欣赏"); // 返回空字符串，防止崩溃
+    }
     auto upperIt = lrcMap.lowerBound(currentMs);
 
     // 6. 如果找到的迭代器指向Map开头，说明当前时间早于第一句歌词
@@ -170,7 +197,7 @@ void MainWindow::on_stopButton_clicked()
     else
     {
         player->play();
-        timer.start(1000);
+        timer.start(500);
         ui->stopButton->setText("暂停");
     }
 
@@ -285,4 +312,14 @@ void MainWindow::on_recButton_clicked()
 
 
     });
+}
+
+QString MainWindow::getNewmid() const
+{
+    return newmid;
+}
+
+void MainWindow::setNewmid(QString value)
+{
+    newmid = value;
 }
