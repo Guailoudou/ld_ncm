@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -10,7 +10,9 @@
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
 #include <QListWidgetItem>
+#include <QMessageBox>
 #include <QTimer>
+#include <QMap>
 namespace Ui
 {
 class MainWindow;
@@ -25,6 +27,10 @@ public:
     ~MainWindow();
 
 
+    void getLyric(const QString mid);
+
+    QString getLyricAtMs(qint64 currentMs);
+    void openplayer(const QString murl);
 private slots:
     void on_searchButton_clicked();
 
@@ -37,11 +43,14 @@ private slots:
     void on_loginButton_clicked();
     void onLoginWindowClosed();
 
+    void on_recButton_clicked();
+
 private:
     Ui::MainWindow* ui;
     network* net;
     QMediaPlayer* player;               //播放对象
     QMediaPlaylist* playerlist;
+    QMap<qint64, QString> lrcMap;
     QTimer timer;
 };
 

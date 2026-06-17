@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget* parent) :
@@ -14,7 +14,11 @@ MainWindow::MainWindow(QWidget* parent) :
         ui->mpbar->setValue(player->position());
         ui->mpbar->setMaximum(player->duration());
         if(player->duration() == 0)timer.stop();
-        qDebug() << "maxtime=" << player->duration() << "time= " << player->position();
+        //qDebug() << "maxtime=" << player->duration() << "time= " << player->position();
+        ui->lyric_label->setText(getLyricAtMs(player->position()));
+        QString time_str = QDateTime::fromMSecsSinceEpoch(player->position(), Qt::UTC).toString("mm:ss");
+        time_str += "/" + QDateTime::fromMSecsSinceEpoch(player->duration(), Qt::UTC).toString("mm:ss");
+        ui->time_label->setText(time_str);
     });
     onLoginWindowClosed();
 }
@@ -74,14 +78,7 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
                 if(code == 200)
                 {
                     QString murl = Jsondata.value("data").toArray()[0].toObject().value("url").toString();
-                    qDebug() << "[播放]:" << murl;
-                    //播放音乐
-                    playerlist->clear();
-                    playerlist->addMedia(QUrl(murl));                     //添加一音乐到播放列表中
-                    player->setMedia(playerlist);                        //将列表设置到播放器中
-                    playerlist->setCurrentIndex(0);
-                    player->play();                                  //播放
-                    timer.start(1000);
+                    openplayer(murl);
                 }
             });
         }
@@ -93,21 +90,70 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
                 if(code == 200)
                 {
                     QString murl = Jsondata.value("data").toArray()[0].toObject().value("url").toString();
-                    qDebug() << "[player]:url=" << murl;
-                    //播放音乐
-                    playerlist->clear();
-                    playerlist->addMedia(QUrl(murl));                     //添加一音乐到播放列表中
-                    player->setMedia(playerlist);                        //将列表设置到播放器中
-                    playerlist->setCurrentIndex(0);
-                    player->play();                                  //播放
-                    timer.start(1000);
+                    openplayer(murl);
                 }
             });
         }
+        getLyric(mid);
+        QPixmap pixmap;
+        pixmap.loadFromData(from->getImgdata());
+        ui->img_new->setPixmap(pixmap.scaled(ui->img_new->size(), Qt::KeepAspectRatio));
 
     }
 }
+void MainWindow::openplayer(const QString murl)
+{
+    qDebug() << "[player]:url=" << murl;
+    //播放音乐
+    playerlist->clear();
+    playerlist->addMedia(QUrl(murl));                     //添加一音乐到播放列表中
+    player->setMedia(playerlist);                        //将列表设置到播放器中
+    playerlist->setCurrentIndex(0);
+    player->play();                                  //播放
+    timer.start(1000);
+}
+void MainWindow::getLyric(const QString mid)
+{
+    QString url = net->getApi_url() + "/lyric?id=" + mid + "&ua=pc&timestamp=" + common::get_time();
+    net->geturl_Json(url, [this](const QJsonObject & Jsondata)
+    {
+        int code = Jsondata.value("code").toInt();
+        if(code == 200)
+        {
+            lrcMap.clear();
+            QString lrcString = Jsondata.value("lrc").toObject().value("lyric").toString();
+            QRegularExpression regex(R"(\[\s*(\d+)\s*:\s*(\d+)\s*\.\s*(\d+)\s*\]\s*(.*))");
+            QRegularExpressionMatchIterator it = regex.globalMatch(lrcString);
 
+            while(it.hasNext())
+            {
+                QRegularExpressionMatch match = it.next();
+                int minutes = match.captured(1).toInt();
+                int seconds = match.captured(2).toInt();
+                int milliseconds = match.captured(3).toInt();
+                QString text = match.captured(4).trimmed();
+
+                // 3. 将时间统一转换为毫秒
+                qint64 totalMs = minutes * 60000 + seconds * 1000 + milliseconds;
+                lrcMap.insert(totalMs, text);
+            }
+        }
+    });
+}
+QString MainWindow::getLyricAtMs(qint64 currentMs)
+{
+    auto upperIt = lrcMap.lowerBound(currentMs);
+
+    // 6. 如果找到的迭代器指向Map开头，说明当前时间早于第一句歌词
+    if(upperIt == lrcMap.begin())
+    {
+        return upperIt.value();
+    }
+
+    // 7. 否则，回退一步，即为当前时间所属的歌词区间
+    --upperIt;
+    return upperIt.value();
+}
 void MainWindow::on_mpbar_sliderMoved(int position)
 {
     player->setPosition(position);
@@ -115,8 +161,19 @@ void MainWindow::on_mpbar_sliderMoved(int position)
 
 void MainWindow::on_stopButton_clicked()
 {
-    player->stop();
-    timer.stop();
+    if(ui->stopButton->text() == "stop")
+    {
+        player->pause();
+        timer.stop();
+        ui->stopButton->setText("player");
+    }
+    else
+    {
+        player->play();
+        timer.start(1000);
+        ui->stopButton->setText("stop");
+    }
+
 }
 
 
@@ -128,6 +185,27 @@ void MainWindow::on_loginButton_clicked()
         logins->setAttribute(Qt::WA_DeleteOnClose);
         connect(logins, &ncm_login::windowClosed, this, &MainWindow::onLoginWindowClosed);
         logins->show();
+    }
+    else
+    {
+        //退出登录
+        QString url = net->getApi_url() + "/logout?timestamp=" + common::get_time();
+        QJsonObject postDataObj;
+        postDataObj.insert("cookie", user_data->getCookie());
+        net->posturl_Json(url, postDataObj,
+                          [this](const QJsonObject & Jsondata)
+        {
+            int code = Jsondata.value("code").toInt();
+            if(code == 200)
+            {
+                qDebug() << "退出登录成功";
+                user_data->setCookie("");
+                user_data->savefile();
+                ui->loginButton->setText("登录");
+            }
+
+
+        });
     }
 
 }
@@ -146,6 +224,12 @@ void MainWindow::onLoginWindowClosed()
             if(code == 200)
             {
                 user_data->setData(userdata);
+                if(!userdata.value("profile").isObject())
+                {
+                    user_data->setCookie("");
+                    user_data->savefile();
+                    return;
+                }
                 net->geturl_data(userdata.value("profile").toObject().value("avatarUrl").toString(),
                                  [this](const QByteArray & data)
                 {
@@ -156,11 +240,44 @@ void MainWindow::onLoginWindowClosed()
                 user_data->savefile();
                 ui->loginButton->setText("退出登录");
             }
-            else
-            {
-                user_data->setCookie("");
-                user_data->savefile();
-            }
         });
     }
+}
+
+void MainWindow::on_recButton_clicked()
+{
+    if(user_data->getCookie() == "")
+    {
+        QMessageBox::information(this, "提示", "登录后才可以获取每日推荐。");
+        return;
+    }
+    ui->listWidget->clear();
+    QString url = net->getApi_url() + "/recommend/songs";
+    QJsonObject postDataObj;
+    postDataObj.insert("cookie", user_data->getCookie());
+    qDebug() << "开始获取每日推荐";
+    net->posturl_Json(url, postDataObj,
+                      [this](const QJsonObject & Jsondata)
+    {
+        int code = Jsondata.value("code").toInt();
+        if(code == 200)
+        {
+            QJsonArray songs = Jsondata.value("data").toObject().value("dailySongs").toArray();
+            for(const QJsonValue& songv : songs)
+            {
+                if(songv.isObject())
+                {
+                    QJsonObject song = songv.toObject();
+                    QListWidgetItem* item = new QListWidgetItem;
+                    ui->listWidget->addItem(item);
+                    music_list_item* from = new music_list_item(this);
+                    from->setItem(song);
+                    item->setSizeHint(from->size());
+                    ui->listWidget->setItemWidget(item, from);
+                }
+            }
+        }
+
+
+    });
 }
