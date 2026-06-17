@@ -1,4 +1,4 @@
-#ifndef MUSIC_LIST_ITEM_H
+﻿#ifndef MUSIC_LIST_ITEM_H
 #define MUSIC_LIST_ITEM_H
 
 #include <QWidget>
@@ -15,7 +15,7 @@ class music_list_item : public QWidget
 
 public:
     explicit music_list_item(QWidget* parent = nullptr);
-    void setItem(QJsonObject jsonData);
+    void setItem(QJsonObject& jsonData);
     ~music_list_item();
 
     QString getMid() const;

@@ -1,4 +1,4 @@
-#include "music_list_item.h"
+﻿#include "music_list_item.h"
 #include "ui_music_list_item.h"
 
 music_list_item::music_list_item(QWidget* parent) :
@@ -9,7 +9,7 @@ music_list_item::music_list_item(QWidget* parent) :
     ui->setupUi(this);
 }
 
-void music_list_item::setItem(QJsonObject jsonData)
+void music_list_item::setItem(QJsonObject& jsonData)
 {
     setJsonData(jsonData);
     net->geturl_data(jsonData.value("al").toObject().value("picUrl").toString(),

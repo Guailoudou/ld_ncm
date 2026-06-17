@@ -32,7 +32,8 @@ SOURCES += \
     ncm_login.cpp \
     userdata.cpp \
     common.cpp \
-    music_list_item.cpp
+    music_list_item.cpp \
+    user_playerlist.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,12 +42,14 @@ HEADERS += \
     ncm_login.h \
     userdata.h \
     common.h \
-    music_list_item.h
+    music_list_item.h \
+    user_playerlist.h
 
 FORMS += \
         mainwindow.ui \
     ncm_login.ui \
-    music_list_item.ui
+    music_list_item.ui \
+    user_playerlist.ui
 win32:msvc {
     QMAKE_CXXFLAGS += /utf-8
 }

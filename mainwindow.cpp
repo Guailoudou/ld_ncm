@@ -48,7 +48,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
+//搜索
 void MainWindow::on_searchButton_clicked()
 {
     QString search_text = ui->searchEdit->text();
@@ -79,46 +79,84 @@ void MainWindow::on_searchButton_clicked()
 
     });
 }
-
+//点击列表元素
 void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
 {
     if(item)
     {
         music_list_item* from = dynamic_cast<music_list_item*>(ui->listWidget->itemWidget(item));
-        QString mid = from->getMid();
-        setNewmid(mid);
-        QString url = net->getApi_url() + "/song/url/v1?id=" + mid + "&ua=pc&level=exhigh&timestamp=" + common::get_time();
-        qDebug() << url;
-        QJsonObject postDataObj;
-        if(user_data->getCookie() != "")
+        if(from)
         {
-            postDataObj.insert("cookie", user_data->getCookie());
-            net->posturl_Json(url, postDataObj, [this](const QJsonObject & Jsondata)
+            QString mid = from->getMid();
+            setNewmid(mid);
+            QString url = net->getApi_url() + "/song/url/v1?id=" + mid + "&ua=pc&level=exhigh&timestamp=" + common::get_time();
+            qDebug() << url;
+            QJsonObject postDataObj;
+            if(user_data->getCookie() != "")
             {
-                int code = Jsondata.value("code").toInt();
-                if(code == 200)
+                postDataObj.insert("cookie", user_data->getCookie());
+                net->posturl_Json(url, postDataObj, [this](const QJsonObject & Jsondata)
                 {
-                    QString murl = Jsondata.value("data").toArray()[0].toObject().value("url").toString();
-                    openplayer(murl);
-                }
-            });
+                    int code = Jsondata.value("code").toInt();
+                    if(code == 200)
+                    {
+                        QString murl = Jsondata.value("data").toArray()[0].toObject().value("url").toString();
+                        openplayer(murl);
+                    }
+                });
+            }
+            else
+            {
+                net->geturl_Json(url, [this](const QJsonObject & Jsondata)
+                {
+                    int code = Jsondata.value("code").toInt();
+                    if(code == 200)
+                    {
+                        QString murl = Jsondata.value("data").toArray()[0].toObject().value("url").toString();
+                        openplayer(murl);
+                    }
+                });
+            }
+            getLyric(mid);
+            QPixmap pixmap;
+            pixmap.loadFromData(from->getImgdata());
+            ui->img_new->setPixmap(pixmap.scaled(ui->img_new->size(), Qt::KeepAspectRatio));
         }
         else
         {
-            net->geturl_Json(url, [this](const QJsonObject & Jsondata)
+            user_playerlist* from2 = dynamic_cast<user_playerlist*>(ui->listWidget->itemWidget(item));
+            if(from2)
             {
-                int code = Jsondata.value("code").toInt();
-                if(code == 200)
+                ui->listWidget->clear();
+                QString url = net->getApi_url() + "/playlist/detail?id=" + from2->getId();
+                net->geturl_Json(url,
+                                 [this](const QJsonObject & Jsondata)
                 {
-                    QString murl = Jsondata.value("data").toArray()[0].toObject().value("url").toString();
-                    openplayer(murl);
-                }
-            });
+                    int code = Jsondata.value("code").toInt();
+                    if(code == 200)
+                    {
+                        //playlist.tracks[]
+                        QJsonArray songs = Jsondata.value("playlist").toObject().value("tracks").toArray();
+                        for(const QJsonValue& songv : songs)
+                        {
+                            if(songv.isObject())
+                            {
+                                QJsonObject song = songv.toObject();
+                                QListWidgetItem* item = new QListWidgetItem;
+                                ui->listWidget->addItem(item);
+                                music_list_item* from = new music_list_item(this);
+                                from->setItem(song);
+                                item->setSizeHint(from->size());
+                                ui->listWidget->setItemWidget(item, from);
+                            }
+                        }
+                    }
+
+
+                });
+            }
         }
-        getLyric(mid);
-        QPixmap pixmap;
-        pixmap.loadFromData(from->getImgdata());
-        ui->img_new->setPixmap(pixmap.scaled(ui->img_new->size(), Qt::KeepAspectRatio));
+
 
     }
 }
@@ -133,7 +171,7 @@ void MainWindow::openplayer(const QString murl)
     player->setMedia(playerlist);                        //将列表设置到播放器中
     playerlist->setCurrentIndex(0);
     player->play();                                  //播放
-    timer.start(500);
+    timer.start(1000);
 }
 void MainWindow::getLyric(const QString mid)
 {
@@ -197,7 +235,7 @@ void MainWindow::on_stopButton_clicked()
     else
     {
         player->play();
-        timer.start(500);
+        timer.start(1000);
         ui->stopButton->setText("暂停");
     }
 
@@ -322,4 +360,36 @@ QString MainWindow::getNewmid() const
 void MainWindow::setNewmid(QString value)
 {
     newmid = value;
+}
+
+void MainWindow::on_playlistButton_clicked()
+{
+    QString url = net->getApi_url() + "/user/playlist?uid=" + QString::number(static_cast<qint64>(user_data->getData().value("account").toObject().value("id").toDouble()));
+    qDebug() << "url:" << url ;
+
+    net->geturl_Json(url,
+                     [this](const QJsonObject & Jsondata)
+    {
+        int code = Jsondata.value("code").toInt();
+        if(code == 200)
+        {
+            ui->listWidget->clear();
+            QJsonArray playerlists = Jsondata.value("playlist").toArray();
+            for(const QJsonValue& pl : playerlists)
+            {
+                if(pl.isObject())
+                {
+                    QJsonObject plo = pl.toObject();
+                    QListWidgetItem* item = new QListWidgetItem;
+                    ui->listWidget->addItem(item);
+                    user_playerlist* from = new user_playerlist(this);
+                    from->setItem(plo);
+                    item->setSizeHint(from->size());
+                    ui->listWidget->setItemWidget(item, from);
+                }
+            }
+        }
+
+
+    });
 }

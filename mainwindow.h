@@ -1,4 +1,4 @@
-﻿#ifndef MAINWINDOW_H
+#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -6,6 +6,7 @@
 #include "userdata.h"
 #include "common.h"
 #include "music_list_item.h"
+#include "user_playerlist.h"
 #include "ncm_login.h"
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
@@ -47,6 +48,8 @@ private slots:
     void onLoginWindowClosed();
 
     void on_recButton_clicked();
+
+    void on_playlistButton_clicked();
 
 private:
     Ui::MainWindow* ui;
