@@ -161,17 +161,17 @@ void MainWindow::on_mpbar_sliderMoved(int position)
 
 void MainWindow::on_stopButton_clicked()
 {
-    if(ui->stopButton->text() == "stop")
+    if(ui->stopButton->text() == "暂停")
     {
         player->pause();
         timer.stop();
-        ui->stopButton->setText("player");
+        ui->stopButton->setText("播放");
     }
     else
     {
         player->play();
         timer.start(1000);
-        ui->stopButton->setText("stop");
+        ui->stopButton->setText("暂停");
     }
 
 }
@@ -188,6 +188,11 @@ void MainWindow::on_loginButton_clicked()
     }
     else
     {
+        onLoginWindowClosed();
+        if(ui->loginButton->text() != "登录")
+        {
+            return;
+        }
         //退出登录
         QString url = net->getApi_url() + "/logout?timestamp=" + common::get_time();
         QJsonObject postDataObj;
