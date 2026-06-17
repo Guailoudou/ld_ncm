@@ -9,26 +9,40 @@ void HttpClient::hget(const QString& url,
 {
     QNetworkRequest request{QUrl(url)};
 
-    // ·¢Æð GET ÇëÇó
+    m_retryGetUrl = url;
+    m_retryGetOnSuccess = onSuccess;
+    m_retryGetOnError = onError;
+    m_retryGetCount = 0;
+
+    // å‘èµ· GET è¯·æ±‚
     QNetworkReply* reply = QNetworkAccessManager::get(request);
 
-    connect(reply, &QNetworkReply::finished, [reply, onSuccess, onError]()
+    connect(reply, &QNetworkReply::finished, [this, reply]()
     {
         if(reply->error() == QNetworkReply::NoError)
         {
-            if(onSuccess)
+            if(m_retryGetOnSuccess)
             {
-                onSuccess(reply->readAll());
+                m_retryGetOnSuccess(reply->readAll());
             }
         }
         else
         {
-            if(onError)
+            m_retryGetCount++;
+            if(m_retryGetCount < MAX_RETRY)
             {
-                onError(reply->errorString());
+                QTimer::singleShot(RETRY_DELAY_MS, this, &HttpClient::retryGet);
+                return;
+            }
+            else
+            {
+                if(m_retryGetOnError)
+                {
+                    m_retryGetOnError(reply->errorString());
+                }
             }
         }
-        reply->deleteLater(); // ÊÍ·ÅÄÚ´æ
+        reply->deleteLater(); // é‡Šæ”¾å†…å­˜
     });
 }
 
@@ -41,35 +55,121 @@ void HttpClient::hpost(const QString& url, const QJsonObject& jsonData,
 
     QByteArray data = QJsonDocument(jsonData).toJson(QJsonDocument::Compact);
 
-    // ·¢Æð POST ÇëÇó
+    m_retryPostUrl = url;
+    m_retryPostData = jsonData;
+    m_retryPostOnSuccess = onSuccess;
+    m_retryPostOnError = onError;
+    m_retryPostCount = 0;
+
+    // å‘èµ· POST è¯·æ±‚
     QNetworkReply* reply = QNetworkAccessManager::post(request, data);
 
-    connect(reply, &QNetworkReply::finished, [reply, onSuccess, onError]()
+    connect(reply, &QNetworkReply::finished, [this, reply]()
     {
         if(reply->error() == QNetworkReply::NoError)
         {
-            if(onSuccess)
+            if(m_retryPostOnSuccess)
             {
-                onSuccess(reply->readAll());
+                m_retryPostOnSuccess(reply->readAll());
             }
         }
         else
         {
-            if(onError)
+            m_retryPostCount++;
+            if(m_retryPostCount < MAX_RETRY)
             {
-                onError(reply->errorString());
+                QTimer::singleShot(RETRY_DELAY_MS, this, &HttpClient::retryPost);
+                return;
+            }
+            else
+            {
+                if(m_retryPostOnError)
+                {
+                    m_retryPostOnError(reply->errorString());
+                }
             }
         }
-        reply->deleteLater(); // ÊÍ·ÅÄÚ´æ
+        reply->deleteLater(); // é‡Šæ”¾å†…å­˜
     });
 }
 
 void HttpClient::setCookies(const QList<QNetworkCookie>& cookies)
 {
-    // »ñÈ¡Ä¬ÈÏµÄ Cookie Jar ²¢ÉèÖÃ Cookie
+    // èŽ·å–é»˜è®¤çš„ Cookie Jar å¹¶è®¾ç½® Cookie
     QNetworkCookieJar* jar = this->cookieJar();
     for(const auto& cookie : cookies)
     {
         jar->insertCookie(cookie);
     }
+}
+
+void HttpClient::retryGet()
+{
+    QNetworkRequest request{QUrl(m_retryGetUrl)};
+    QNetworkReply* reply = QNetworkAccessManager::get(request);
+
+    connect(reply, &QNetworkReply::finished, [this, reply]()
+    {
+        if(reply->error() == QNetworkReply::NoError)
+        {
+            if(m_retryGetOnSuccess)
+            {
+                m_retryGetOnSuccess(reply->readAll());
+            }
+        }
+        else
+        {
+            m_retryGetCount++;
+            if(m_retryGetCount < MAX_RETRY)
+            {
+                QTimer::singleShot(RETRY_DELAY_MS, this, &HttpClient::retryGet);
+                return;
+            }
+            else
+            {
+                if(m_retryGetOnError)
+                {
+                    m_retryGetOnError(reply->errorString());
+                }
+            }
+        }
+        reply->deleteLater();
+    });
+}
+
+void HttpClient::retryPost()
+{
+    QNetworkRequest request{QUrl(m_retryPostUrl)};
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QByteArray data = QJsonDocument(m_retryPostData).toJson(QJsonDocument::Compact);
+
+    QNetworkReply* reply = QNetworkAccessManager::post(request, data);
+
+    connect(reply, &QNetworkReply::finished, [this, reply]()
+    {
+        if(reply->error() == QNetworkReply::NoError)
+        {
+            if(m_retryPostOnSuccess)
+            {
+                m_retryPostOnSuccess(reply->readAll());
+            }
+        }
+        else
+        {
+            m_retryPostCount++;
+            if(m_retryPostCount < MAX_RETRY)
+            {
+                QTimer::singleShot(RETRY_DELAY_MS, this, &HttpClient::retryPost);
+                return;
+            }
+            else
+            {
+                if(m_retryPostOnError)
+                {
+                    m_retryPostOnError(reply->errorString());
+                }
+            }
+        }
+        reply->deleteLater();
+    });
 }

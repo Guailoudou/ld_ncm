@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QNetworkCookie>
 #include <QList>
+#include <QTimer>
 #include <functional>
 
 class HttpClient : public QNetworkAccessManager
@@ -16,18 +17,39 @@ class HttpClient : public QNetworkAccessManager
 public:
     explicit HttpClient(QObject* parent = nullptr);
 
-    // ·¢ËÍ GET ÇëÇó
+    // å‘é€ GET è¯·æ±‚
     void hget(const QString& url,
               std::function<void(const QByteArray&)> onSuccess = nullptr,
               std::function<void(const QString&)> onError = nullptr);
 
-    // ·¢ËÍ POST ÇëÇó (JSON¸ñÊ½)
+    // å‘é€ POST è¯·æ±‚ (JSONæ ¼å¼)
     void hpost(const QString& url, const QJsonObject& jsonData,
                std::function<void(const QByteArray&)> onSuccess = nullptr,
                std::function<void(const QString&)> onError = nullptr);
 
-    // ÊÖ¶¯ÉèÖÃ Cookie
+    // æ‰‹åŠ¨è®¾ç½® Cookie
     void setCookies(const QList<QNetworkCookie>& cookies);
+
+private slots:
+    void retryGet();
+    void retryPost();
+
+private:
+    // GET é‡è¯•å‚æ•°
+    QString m_retryGetUrl;
+    std::function<void(const QByteArray&)> m_retryGetOnSuccess;
+    std::function<void(const QString&)> m_retryGetOnError;
+    int m_retryGetCount = 0;
+
+    // POST é‡è¯•å‚æ•°
+    QString m_retryPostUrl;
+    QJsonObject m_retryPostData;
+    std::function<void(const QByteArray&)> m_retryPostOnSuccess;
+    std::function<void(const QString&)> m_retryPostOnError;
+    int m_retryPostCount = 0;
+
+    static constexpr int MAX_RETRY = 3;
+    static constexpr int RETRY_DELAY_MS = 500;
 };
 
 #endif // HTTPCLIENT_H
