@@ -53,7 +53,14 @@ void music_list_item::setItem(QJsonObject& jsonData)
     ui->song_name->setText(name);
     setMid(QString::number(static_cast<qint64>(jsonData.value("id").toDouble())));
 }
-
+void music_list_item::rmSelected()
+{
+    ui->splitter_2->setStyleSheet("background-color: rgb(255, 255, 255,0);");
+}
+void music_list_item::setSelected()
+{
+    ui->splitter_2->setStyleSheet("background-color: rgb(255, 0, 0,20);");
+}
 music_list_item::~music_list_item()
 {
     delete ui;

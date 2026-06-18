@@ -104,6 +104,7 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
                         openplayer(murl);
                     }
                 });
+
             }
             else
             {
@@ -121,6 +122,16 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem* item)
             QPixmap pixmap;
             pixmap.loadFromData(from->getImgdata());
             ui->img_new->setPixmap(pixmap.scaled(ui->img_new->size(), Qt::KeepAspectRatio));
+            for(int i = 0; i < ui->listWidget->count(); ++i)
+            {
+                QListWidgetItem* item = ui->listWidget->item(i);
+                if(item)
+                {
+                    music_list_item* from = dynamic_cast<music_list_item*>(ui->listWidget->itemWidget(item));
+                    from->rmSelected();
+                }
+            }
+            from->setSelected();
         }
         else
         {
@@ -361,10 +372,10 @@ void MainWindow::setNewmid(QString value)
 {
     newmid = value;
 }
-
+//我的歌单
 void MainWindow::on_playlistButton_clicked()
 {
-    QString url = net->getApi_url() + "/user/playlist?uid=" + QString::number(static_cast<qint64>(user_data->getData().value("account").toObject().value("id").toDouble()));
+    QString url = net->getApi_url() + "/user/playlist?limit=100&uid=" + QString::number(static_cast<qint64>(user_data->getData().value("account").toObject().value("id").toDouble()));
     qDebug() << "url:" << url ;
 
     net->geturl_Json(url,

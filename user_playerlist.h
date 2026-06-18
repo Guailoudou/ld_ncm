@@ -1,4 +1,4 @@
-#ifndef USER_PLAYERLIST_H
+﻿#ifndef USER_PLAYERLIST_H
 #define USER_PLAYERLIST_H
 
 #include <QWidget>
@@ -27,6 +27,8 @@ public:
     QJsonObject getJsonData() const;
     void setJsonData(const QJsonObject& value);
 
+    void rmSelected();
+    void setSelected();
 private:
     Ui::user_playerlist* ui;
     network* net;

@@ -1,4 +1,4 @@
-#include "user_playerlist.h"
+﻿#include "user_playerlist.h"
 #include "ui_user_playerlist.h"
 
 user_playerlist::user_playerlist(QWidget* parent) :
@@ -23,7 +23,14 @@ void user_playerlist::setItem(QJsonObject& jsonData)
     ui->song_name->setText(jsonData.value("name").toString());
     setId(QString::number(static_cast<qint64>(jsonData.value("id").toDouble())));
 }
-
+void user_playerlist::rmSelected()
+{
+    ui->splitter->setStyleSheet("background-color: rgb(255, 255, 255,0);");
+}
+void user_playerlist::setSelected()
+{
+    ui->splitter->setStyleSheet("background-color: rgb(255, 0, 0,20);");
+}
 user_playerlist::~user_playerlist()
 {
     delete ui;

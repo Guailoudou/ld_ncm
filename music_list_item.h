@@ -27,6 +27,8 @@ public:
     QJsonObject getJsonData() const;
     void setJsonData(const QJsonObject& value);
 
+    void setSelected();
+    void rmSelected();
 private:
     Ui::music_list_item* ui;
     network* net;
